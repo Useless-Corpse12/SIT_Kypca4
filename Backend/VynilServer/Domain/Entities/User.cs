@@ -7,13 +7,14 @@ public class User : Entity
     public string PasswordHash { get; set; } = string.Empty;
     public Role Role { get; set; }
     public bool IsVerified { get; set; } = false;
+    public List<string> RefreshToken { get; set; } = [];
 
-    public ICollection<Order> Purchases { get; set; } = [];
+    public ICollection<Order> Orders { get; set; } = [];
     public ICollection<Review> Reviews { get; set; } = [];
     
     private User() { }
 
-    public static User Create(string login, string email, string passwordHash)
+    public static User CreateUser(string login, string email, string passwordHash)
     {
         return new User
         {
@@ -40,6 +41,15 @@ public class User : Entity
     public void VerifyEmail()
     {
         IsVerified = true;
+    }
+    
+    public void Anonymize()
+    {
+        Login = $"Удалённый пользователь {Id}";
+        Email = $"Deleted{Id}";
+        PasswordHash = string.Empty;
+        IsVerified = false;
+        RefreshToken.Clear();
     }
 }
 
