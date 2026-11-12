@@ -13,7 +13,7 @@ public class Product : Entity
     public ProductStatus Status { get; set; }
     public int Stock {get;set;} 
 
-    public ICollection<OrderItem> Orders { get; set; } = [];
+    public ICollection<OrderItem> OrderItems { get; set; } = [];
     public ICollection<Review> Reviews { get; set; } = [];
 
     public static Product Create(string genre, string bandName, string title, string description, int releaseYear,
@@ -27,7 +27,7 @@ public class Product : Entity
             Description = description,
             ReleaseYear = releaseYear,
             Type = type,
-            UrlPhoto = urlPhoto,
+            UrlPhoto = $"products/{urlPhoto}",
             Stock = 0,
             Cost = 0,
             Status = ProductStatus.Unavailable
