@@ -17,10 +17,13 @@
         </PackageReference>
         <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.23.0" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="10.3.1" />
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.23.0" />
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Application\" />
+      <Folder Include="Infrastructure\" />
       <Folder Include="Presentation\" />
     </ItemGroup>
 
