@@ -1,4 +1,7 @@
 using System.Text;
+using VynilServer.Infrastructure.Security.Hasher;
+using VynilServer.Infrastructure.Services.EmailService;
+using VynilServer.Infrastructure.Services.VerificationCode;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -32,6 +35,20 @@ builder.Services.AddAuthentication(options =>
     });
 
 builder.Services.AddAuthorization();
+
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+
+var salt = builder.Configuration.GetValue<string>("salt") 
+           ?? throw new InvalidOperationException("Соль не найдена!");
+
+builder.Services.AddSingleton<IPasswordHasher>(new PasswordHasher(salt));
+
+builder.Services.AddMemoryCache();
+
+builder.Services.AddScoped<IEmailSender, EmailSender>();
+
+builder.Services.AddScoped<IVerificationCodeService, VerificationCodeWorker>();
+
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

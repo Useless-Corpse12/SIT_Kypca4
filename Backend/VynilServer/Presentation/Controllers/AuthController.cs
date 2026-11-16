@@ -1,16 +1,28 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MediatR;
+using VynilServer.Application.Auth.RegisterUser;
 
 namespace VynilServer.Presentation.Controllers;
 
 
-public class AuthController : ApiController
+public class AuthController(IMediator mediator) : ApiController
 {
     //anon Users
     //Рега усера
     [HttpPost("[action]")]
     [AllowAnonymous]
-    public async Task<IActionResult> RegisterUser() {}
+    public async Task<IActionResult> RegisterUser([FromBody] RegisterUserCommand request)
+    {
+        var result = await mediator.Send(request);
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new { message = result.Error });
+        }
+
+        return Ok(new { message = "Регистрация успешна. Проверьте почту для подтверждения." });
+    }
     //Подтв почты при реге
     [HttpPost("[action]")]
     [AllowAnonymous]
