@@ -47,7 +47,7 @@ builder.Services.AddMemoryCache();
 
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 
-builder.Services.AddScoped<IVerificationCodeService, VerificationCodeWorker>();
+builder.Services.AddScoped<IVerificationCodeService, CodeWorker>();
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());
 builder.Services.AddControllers();
