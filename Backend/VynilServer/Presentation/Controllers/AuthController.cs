@@ -1,7 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MediatR;
+using VynilServer.Application.Auth.ForgotPassword;
 using VynilServer.Application.Auth.RegisterUser;
+using VynilServer.Application.Auth.ResendCode;
+using VynilServer.Application.Auth.ResetPassword;
+using VynilServer.Application.Auth.VerifyUser;
 
 namespace VynilServer.Presentation.Controllers;
 
@@ -10,27 +14,41 @@ public class AuthController(IMediator mediator) : ApiController
 {
     //anon Users
     //Рега усера
-    [HttpPost("[action]")]
+    [HttpPost("registration")]
     [AllowAnonymous]
     public async Task<IActionResult> RegisterUser([FromBody] RegisterUserCommand request)
     {
         var result = await mediator.Send(request);
 
         if (!result.IsSuccess)
-        {
             return BadRequest(new { message = result.Error });
-        }
 
-        return Ok(new { message = "Регистрация успешна. Проверьте почту для подтверждения." });
+        return Ok(new {userId = result.Value, message = "Регистрация успешна. Проверьте почту для подтверждения." });
     }
+    
     //Подтв почты при реге
-    [HttpPost("[action]")]
+    [HttpPost("verify-email")]
     [AllowAnonymous]
-    public async Task<IActionResult> VerifyMail() {}
+    public async Task<IActionResult> VerifyMail([FromBody] VerifyUserCommand request)
+    {
+        var result = await mediator.Send(request);
+        
+        if (!result.IsSuccess) 
+            return BadRequest(new { message = result.Error });
+        
+        return Ok(new {isSuccess = result.Value ,message = "Верификация " + (result.Value ? "успешна" : "провалена")});
+    }
+    
     //Повторная отправка кода подтверждения
-    [HttpPost("[action]")]
+    [HttpPost("resend-code")]
     [AllowAnonymous]
-    public async Task<IActionResult> ResendCode() {}
+    public async Task<IActionResult> ResendCode([FromBody] ResendCodeCommand request)
+    {
+        var result = await mediator.Send(request);
+        if (!result.IsSuccess)
+            return BadRequest(new { message = result.Error });
+        return Ok(new {isSuccess = result.Value, message = result.Value ? "Код выслан на почту" : "Тебе это не нужно"});
+    }
     //Логин
     [HttpPost("[action]")]
     [AllowAnonymous]
@@ -44,13 +62,35 @@ public class AuthController(IMediator mediator) : ApiController
     [AllowAnonymous]
     public async Task<IActionResult> Refresh() {}
     //Запрос сброса пароля
-    [HttpPost("[action]")]
+    [HttpPost("forgot-password")]
     [AllowAnonymous]
-    public async Task<IActionResult> ForgotPassword() {}
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordCommand request)
+    {
+        var result = await mediator.Send(request);
+        if (!result.IsSuccess)
+            return BadRequest(new { message = result.Error });
+        return Ok(
+            new
+            {
+                isSuccess = result.Value, 
+                message = result.Value ? "Успех!" : "Сначала следует подтвердить почту"
+            });
+    }
     //Установка нового пароля
-    [HttpPost("[action]")]
+    [HttpPost("reset-password")]
     [AllowAnonymous]
-    public async Task<IActionResult> ResetPassword() {}
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand request)
+    {
+        var result = await mediator.Send(request);
+        if (!result.IsSuccess)
+            return BadRequest(new { message = result.Error });
+        return Ok(
+            new
+            {
+                isSuccess = result.Value,
+                message = result.Value ? "Успех!" : "Проверьте правильность введения кода"
+            });
+    }
     
     //Auth
     //Выход (просто чистит токены в бд)

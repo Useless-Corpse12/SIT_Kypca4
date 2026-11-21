@@ -5,7 +5,7 @@ using VynilServer.Data;
 using VynilServer.Domain.Entities;
 using VynilServer.Infrastructure.Security.Hasher;
 using VynilServer.Infrastructure.Services.EmailService;
-using VynilServer.Infrastructure.Services.VerificationCode;
+using VynilServer.Infrastructure.Services.CodeService;
 
 namespace VynilServer.Application.Auth.RegisterUser;
 
@@ -13,13 +13,13 @@ public class RegisterUserHandler(
     AppDbContext dbContext, 
     IPasswordHasher passwordHasher, 
     IEmailSender emailSender,
-    IVerificationCodeService codeService)
+    ICodeService codeService)
 :IRequestHandler<RegisterUserCommand,Result<Guid>>
 {
     public async Task<Result<Guid>> Handle(RegisterUserCommand request, CancellationToken cnt)
     {
         
-        var emailLower = request.email.ToLower();
+        var emailLower = request.Email.ToLower();
         
         var existingUser = await dbContext.Users.
             FirstOrDefaultAsync(x => x.Email == emailLower, cnt);
@@ -29,29 +29,38 @@ public class RegisterUserHandler(
             if (existingUser.IsVerified)
             { return Result<Guid>.Failure("Пользователь с такой почтой уже зарегистрирован"); }
             
-            existingUser.Login = request.login;
-            existingUser.PasswordHash = passwordHasher.Create(request.password);
+            existingUser.Login = request.Login;
+            existingUser.PasswordHash = passwordHasher.Create(request.Password);
             
-            codeService.RemoveCode(existingUser.Id);
-            var code = codeService.GenerateAndSaveCode(existingUser.Id);
+            codeService.RemoveCode(existingUser.Id,CodeType.VerificationCode);
+            var code = codeService.GenerateAndSaveCode(existingUser.Id,CodeType.VerificationCode);
             
-            dbContext.Users.Update(existingUser);
             await dbContext.SaveChangesAsync(cnt);
             
-            await emailSender.SendRegistrationCodeAsync(existingUser.Email, code);
+            await emailSender.SendDynamicEmailAsync(
+                toEmail:existingUser.Email,
+                subject:"Код подтверждения",
+                labels:new[] {"Код подтверждения"},
+                values:new[] {code});
+            
             Console.WriteLine($"Обновлён пользователь. Новый код: {code}");
             
             return Result<Guid>.Success(existingUser.Id);
         }
         
-        var user = User.CreateUser(request.login,emailLower, passwordHasher.Create(request.password));
+        var user = User.CreateUser(request.Login,emailLower, passwordHasher.Create(request.Password));
         
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync(cnt);
         
-        var newCode = codeService.GenerateAndSaveCode(user.Id);
+        var newCode = codeService.GenerateAndSaveCode(user.Id,CodeType.VerificationCode);
         
-        await emailSender.SendRegistrationCodeAsync(user.Email, newCode);
+        await emailSender.SendDynamicEmailAsync(
+            toEmail:user.Email,
+            subject:"Код подтверждения",
+            labels:new[] {"Код подтверждения"},
+            values:new[] {newCode});
+        
         Console.WriteLine($"Создан пользователь. Код: {newCode}");
         
         return Result<Guid>.Success(user.Id);
