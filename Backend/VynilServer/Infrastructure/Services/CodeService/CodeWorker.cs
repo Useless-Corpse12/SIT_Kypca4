@@ -2,7 +2,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace VynilServer.Infrastructure.Services.CodeService;
 
-public class CodeWorker(IMemoryCache cache):ICodeService
+public class CodeService(IMemoryCache cache):ICodeService
 {
     private readonly Random _random = new();
     public string GenerateAndSaveCode(Guid userId, CodeType type)

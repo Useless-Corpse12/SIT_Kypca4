@@ -1,7 +1,7 @@
 using System.Text;
 using VynilServer.Infrastructure.Security.Hasher;
 using VynilServer.Infrastructure.Services.EmailService;
-using VynilServer.Infrastructure.Services.VerificationCode;
+using VynilServer.Infrastructure.Services.CodeService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -47,7 +47,7 @@ builder.Services.AddMemoryCache();
 
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 
-builder.Services.AddScoped<IVerificationCodeService, CodeWorker>();
+builder.Services.AddScoped<ICodeService, CodeService>();
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());
 builder.Services.AddControllers();
