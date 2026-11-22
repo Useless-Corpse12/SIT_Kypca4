@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using VynilServer.Application.Auth.ForgotPassword;
+using VynilServer.Application.Auth.Login;
 using VynilServer.Application.Auth.RegisterUser;
 using VynilServer.Application.Auth.ResendCode;
 using VynilServer.Application.Auth.ResetPassword;
@@ -50,9 +51,41 @@ public class AuthController(IMediator mediator) : ApiController
         return Ok(new {isSuccess = result.Value, message = result.Value ? "Код выслан на почту" : "Тебе это не нужно"});
     }
     //Логин
-    [HttpPost("[action]")]
+    [HttpPost("login")]
     [AllowAnonymous]
-    public async Task<IActionResult> Login() {}
+    public async Task<IActionResult> Login([FromBody] LoginCommand request)
+    {
+        var result = await mediator.Send(request);
+        if (!result.IsSuccess)
+        {
+            if (result.Error == null) 
+                return BadRequest(new 
+                { 
+                        status = "Unverified", 
+                        message = "Аккаунт не верифицирован. Код отправлен на почту." 
+                });
+            
+            return BadRequest(new
+            {
+                status = "InvalidCredentials", 
+                message = result.Error
+            });
+        }
+
+        if (result.Value == null) 
+            return Ok(new
+            {
+                status = "Requires2FA", 
+                message = "Код подтверждения входа отправлен на почту"
+            });
+        
+        return Ok(new
+        {
+            status = "Success", 
+            refreshToken = result.Value
+        });
+    }
+    
     //2FA для админа
     [HttpPost("[action]")]
     [AllowAnonymous]
@@ -61,6 +94,7 @@ public class AuthController(IMediator mediator) : ApiController
     [HttpPost("[action]")]
     [AllowAnonymous]
     public async Task<IActionResult> Refresh() {}
+    
     //Запрос сброса пароля
     [HttpPost("forgot-password")]
     [AllowAnonymous]
