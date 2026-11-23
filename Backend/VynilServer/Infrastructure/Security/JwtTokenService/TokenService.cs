@@ -105,4 +105,45 @@ public class TokenService(IConfiguration configuration) : ITokenService
             return false;
         }
     }
+    
+    public RTokenData? DecodeRefreshToken(string refreshToken)
+    {
+        try
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(refreshToken);
+        
+            var userIdStr = jwt.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
+            if (userIdStr == null)
+                return null;
+        
+            return new RTokenData(Guid.Parse(userIdStr));
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public ATokenData? DecodeAccessToken(string accessToken)
+    {
+        try
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(accessToken);
+        
+            var userIdStr = jwt.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
+            var email = jwt.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Email)?.Value;
+            var role = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+        
+            if (userIdStr == null || email == null || role == null)
+                return null;
+        
+            return new ATokenData(Guid.Parse(userIdStr), email, role);
+        }
+        catch
+        {
+            return null;
+        }
+    }
 }

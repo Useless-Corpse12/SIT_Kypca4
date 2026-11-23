@@ -15,7 +15,7 @@ public class ResetPasswordHandler(
 {
     public async Task<Result<bool>> Handle(ResetPasswordCommand request, CancellationToken cnt)
     {
-        var existingUser = await dbContext.Users.FirstOrDefaultAsync(x => x.Email == request.Email, cnt);
+        var existingUser = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == request.Id, cnt);
         if (existingUser == null)
             return Result<bool>.Failure("Такого пользователя не существует");
         
