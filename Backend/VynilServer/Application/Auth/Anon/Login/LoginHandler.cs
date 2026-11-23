@@ -8,7 +8,7 @@ using VynilServer.Infrastructure.Security.JwtTokenService;
 using VynilServer.Infrastructure.Services.CodeService;
 using VynilServer.Infrastructure.Services.EmailService;
 
-namespace VynilServer.Application.Auth.Login;
+namespace VynilServer.Application.Auth;
 
 public class LoginHandler(
     AppDbContext dbContext,

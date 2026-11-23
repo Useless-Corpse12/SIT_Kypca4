@@ -4,9 +4,12 @@ using VynilServer.Application.Common;
 using VynilServer.Data;
 using VynilServer.Infrastructure.Services.CodeService;
 
-namespace VynilServer.Application.Auth.VerifyUser;
+namespace VynilServer.Application.Auth;
 
-public class VerifyUserHandler(ICodeService codeService,AppDbContext dbContext):IRequestHandler<VerifyUserCommand,Result<bool>>
+public class VerifyUserHandler(
+    AppDbContext dbContext,
+    ICodeService codeService
+    ):IRequestHandler<VerifyUserCommand,Result<bool>>
 {
     async public Task<Result<bool>> Handle(VerifyUserCommand request, CancellationToken cnt)
     {

@@ -5,7 +5,7 @@ using VynilServer.Data;
 using VynilServer.Infrastructure.Security.Hasher;
 using VynilServer.Infrastructure.Services.CodeService;
 
-namespace VynilServer.Application.Auth.ResetPassword;
+namespace VynilServer.Application.Auth;
 
 public class ResetPasswordHandler(
     AppDbContext dbContext,
@@ -15,7 +15,7 @@ public class ResetPasswordHandler(
 {
     public async Task<Result<bool>> Handle(ResetPasswordCommand request, CancellationToken cnt)
     {
-        var existingUser = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == request.Id, cnt);
+        var existingUser = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == request.UserId, cnt);
         if (existingUser == null)
             return Result<bool>.Failure("Такого пользователя не существует");
         

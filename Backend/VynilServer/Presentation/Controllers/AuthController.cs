@@ -1,14 +1,9 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MediatR;
-using VynilServer.Application.Auth.ForgotPassword;
-using VynilServer.Application.Auth.Login;
-using VynilServer.Application.Auth.Refresh;
-using VynilServer.Application.Auth.RegisterUser;
-using VynilServer.Application.Auth.ResendCode;
-using VynilServer.Application.Auth.ResetPassword;
-using VynilServer.Application.Auth.VerifyLogin;
-using VynilServer.Application.Auth.VerifyUser;
+using VynilServer.Application.Auth;
 using VynilServer.Domain.Entities;
 
 namespace VynilServer.Presentation.Controllers;
@@ -126,18 +121,77 @@ public class AuthController(IMediator mediator) : ApiController
     }
     
     //Auth
-    //Выход (просто чистит токены в бд)
-    [HttpPost("[action]")]
+    //Выход (чистит данный токен)
+    [HttpPost("logout")]
     [Authorize]
-    public async Task<IActionResult> Logout() {}
+    public async Task<IActionResult> Logout([FromBody] LogoutCommand request)
+    {
+        var userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub); 
+    
+        if (!Guid.TryParse(userIdString, out var userId))
+            return Unauthorized(new { message = "Некорректный токен" });
+
+        var result = await mediator.Send(request with { UserId = userId });
+
+        if (!result.IsSuccess)
+            return BadRequest(new { message = result.Error });
+
+        return Ok(new { message = "Вы успешно вышли из системы" });
+    }
+    
+    //Полный выход(удаляет все токены)
+    [HttpPost("total-logout")]
+    [Authorize]
+    public async Task<IActionResult> TotalLogout([FromBody] TotalLogoutCommand request)
+    {
+        var userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub); 
+    
+        if (!Guid.TryParse(userIdString, out var userId))
+            return Unauthorized(new { message = "Некорректный токен" });
+        
+        var result = await mediator.Send(request with { UserId = userId });
+
+        if (!result.IsSuccess)
+            return BadRequest(new { message = result.Error });
+
+        return Ok(new { message = "Вы успешно вышли из системы" });
+    }
+    
     //Смена пароля
     [HttpPut("[action]")]
     [Authorize]
-    public async Task<IActionResult> ChangePassword() {}
-    //Самоудаление
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordCommand request)
+    {
+        var userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub); 
+    
+        if (!Guid.TryParse(userIdString, out var userId))
+            return Unauthorized(new { message = "Некорректный токен" });
+        
+        var result = await mediator.Send(request with { UserId = userId });
+
+        if (!result.IsSuccess)
+            return BadRequest(new { message = result.Error });
+
+        return Ok(new { message = "Пароль успешно сменён" });
+    }
+    
+    //Самоудаление (Анонимизация)
     [HttpDelete("[action]")]
     [Authorize]
-    public async Task<IActionResult> SelfDelete() {}
+    public async Task<IActionResult> SelfDelete([FromBody] SelfDeleteCommand request)
+    {
+        var userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub); 
+    
+        if (!Guid.TryParse(userIdString, out var userId))
+            return Unauthorized(new { message = "Некорректный токен" });
+        
+        var result = await mediator.Send(request with { UserId = userId });
+
+        if (!result.IsSuccess)
+            return BadRequest(new { message = result.Error });
+
+        return Ok(new { message = "bye" });
+    }
     
     //Auth(admin-only)
     //Бан
@@ -149,3 +203,5 @@ public class AuthController(IMediator mediator) : ApiController
     [Authorize(Roles = nameof(Role.Admin))]
     public async Task<IActionResult> AdminCreate() {}
 }
+
+public record TokenRequest(string RefreshToken);

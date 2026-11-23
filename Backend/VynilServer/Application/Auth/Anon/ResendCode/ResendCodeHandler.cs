@@ -5,7 +5,7 @@ using VynilServer.Data;
 using VynilServer.Infrastructure.Services.CodeService;
 using VynilServer.Infrastructure.Services.EmailService;
 
-namespace VynilServer.Application.Auth.ResendCode;
+namespace VynilServer.Application.Auth;
 
 public class ResendCodeHandler(
     AppDbContext dbContext,

@@ -7,7 +7,7 @@ using VynilServer.Infrastructure.Security.Hasher;
 using VynilServer.Infrastructure.Services.EmailService;
 using VynilServer.Infrastructure.Services.CodeService;
 
-namespace VynilServer.Application.Auth.RegisterUser;
+namespace VynilServer.Application.Auth;
 
 public class RegisterUserHandler(
     AppDbContext dbContext, 

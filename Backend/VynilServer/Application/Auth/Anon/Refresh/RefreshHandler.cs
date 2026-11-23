@@ -4,7 +4,7 @@ using VynilServer.Application.Common;
 using VynilServer.Data;
 using VynilServer.Infrastructure.Security.JwtTokenService;
 
-namespace VynilServer.Application.Auth.Refresh;
+namespace VynilServer.Application.Auth;
 
 public class RefreshHandler(
     AppDbContext dbContext,

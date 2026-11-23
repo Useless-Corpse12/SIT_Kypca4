@@ -5,7 +5,7 @@ using VynilServer.Data;
 using VynilServer.Infrastructure.Services.CodeService;
 using VynilServer.Infrastructure.Services.EmailService;
 
-namespace VynilServer.Application.Auth.ForgotPassword;
+namespace VynilServer.Application.Auth;
 
 public class ForgotPasswordHandler(
     AppDbContext dbContext,

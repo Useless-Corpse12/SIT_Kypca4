@@ -5,7 +5,7 @@ using VynilServer.Infrastructure.Security.JwtTokenService;
 using VynilServer.Infrastructure.Services.CodeService;
 using VynilServer.Application.Common;
 
-namespace VynilServer.Application.Auth.VerifyLogin;
+namespace VynilServer.Application.Auth;
 
 public class VerifyLoginHandler(
     AppDbContext dbContext,
