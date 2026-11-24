@@ -22,7 +22,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Application\Auth\AdminOnly\" />
       <Folder Include="Application\Auth\Authorized\" />
       <Folder Include="Presentation\" />
     </ItemGroup>

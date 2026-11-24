@@ -158,7 +158,7 @@ public class AuthController(IMediator mediator) : ApiController
     }
     
     //Смена пароля
-    [HttpPut("[action]")]
+    [HttpPut("change-password")]
     [Authorize]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordCommand request)
     {
@@ -176,7 +176,7 @@ public class AuthController(IMediator mediator) : ApiController
     }
     
     //Самоудаление (Анонимизация)
-    [HttpDelete("[action]")]
+    [HttpDelete("self-delete")]
     [Authorize]
     public async Task<IActionResult> SelfDelete([FromBody] SelfDeleteCommand request)
     {
@@ -195,13 +195,24 @@ public class AuthController(IMediator mediator) : ApiController
     
     //Auth(admin-only)
     //Бан
-    [HttpDelete("[action]")]
+    [HttpDelete("user-delete")]
     [Authorize(Roles = nameof(Role.Admin))]
-    public async Task<IActionResult> UserDelete() {}
+    public async Task<IActionResult> UserDelete([FromBody] UserDeleteCommand request)
+    {
+        var result = await mediator.Send(request);
+        if (!result.IsSuccess)
+            return BadRequest(new { message = result.Error });
+        return Ok(new { message = "bye" });
+    }
     //Создание админа
-    [HttpPost("[action]")]
+    [HttpPost("admin-create")]
     [Authorize(Roles = nameof(Role.Admin))]
-    public async Task<IActionResult> AdminCreate() {}
+    public async Task<IActionResult> AdminCreate([FromBody] AdminCreateCommand request)
+    {
+        var result = await mediator.Send(request);
+        if (!result.IsSuccess)
+            return BadRequest(new { message = result.Error });
+        return Ok(new { message = "alright!" });
+    }
+    
 }
-
-public record TokenRequest(string RefreshToken);
