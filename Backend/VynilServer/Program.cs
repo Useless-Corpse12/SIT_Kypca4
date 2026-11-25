@@ -6,8 +6,17 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using VynilServer.Data;
+using VynilServer.Infrastructure.Security.JwtTokenService;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // Порт твоего фронтенда
+            .AllowAnyHeader().AllowAnyMethod().AllowCredentials(); });
+});
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -46,7 +55,7 @@ builder.Services.AddSingleton<IPasswordHasher>(new PasswordHasher(salt));
 builder.Services.AddMemoryCache();
 
 builder.Services.AddScoped<IEmailSender, EmailSender>();
-
+builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ICodeService, CodeService>();
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());
@@ -61,6 +70,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("AllowFrontend");
+
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

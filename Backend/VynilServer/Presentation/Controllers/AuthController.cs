@@ -62,9 +62,12 @@ public class AuthController(IMediator mediator) : ApiController
                     new { status = "Unverified", message = "Аккаунт не верифицирован. Код отправлен на почту." });
             return BadRequest(new { status = "InvalidCredentials", message = result.Error });
         }
-        if (result.Value == null) 
+        if (result.Value.RefreshToken == "FA") 
             return Ok(new { status = "Requires2FA", message = "Код подтверждения входа отправлен на почту" });
-        return Ok(new { status = "Success", refreshToken = result.Value });
+        return Ok(new { 
+            status = "Success", 
+            refreshToken = result.Value.RefreshToken,  
+            accessToken = result.Value.AccessToken });
     }
     
     //2FA для админа

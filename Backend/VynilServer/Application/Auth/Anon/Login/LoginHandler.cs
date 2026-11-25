@@ -16,14 +16,14 @@ public class LoginHandler(
     ICodeService codeService,
     ITokenService tokenService,
     IPasswordHasher passwordHasher
-    ):IRequestHandler<LoginCommand,Result<string>>
+    ):IRequestHandler<LoginCommand,Result<(string RefreshToken,string AccessToken)>>
 {
-    public async Task<Result<string>> Handle(LoginCommand request, CancellationToken cnt)
+    public async Task<Result<(string RefreshToken,string AccessToken)>> Handle(LoginCommand request, CancellationToken cnt)
     {
         var existingUser = await dbContext.Users.FirstOrDefaultAsync(x=>x.Email == request.Email,cnt);
         
         if (existingUser == null) 
-            return Result<string>.Failure("Неверный логин или пароль");
+            return Result<(string,string)>.Failure("Неверный логин или пароль");
         if (!existingUser.IsVerified)
         {
             var code = codeService.GenerateAndSaveCode(existingUser.Id, CodeType.VerificationCode);
@@ -32,11 +32,11 @@ public class LoginHandler(
                 subject:"Код подтверждения",
                 labels: new []{"Код подтверждения"},
                 values: new []{code});
-            return  Result<string>.Failure(null);
+            return  Result<(string,string)>.Failure(null);
         }
 
         if (!passwordHasher.Validate(request.Password, existingUser.PasswordHash))
-            return Result<string>.Failure("Неверный логин или пароль");
+            return Result<(string,string)>.Failure("Неверный логин или пароль");
 
         if (existingUser.Role == Role.Admin)
         {
@@ -46,14 +46,21 @@ public class LoginHandler(
                 subject:"Подтверждение входа",
                 labels:new [] {"Код для подтверждения входа"},
                 values:new [] {code});
-            return Result<string>.Success(null);
+            return Result<(string,string)>.Success(("FA","FA"));
         }
 
-        var token = tokenService.GenerateRefreshToken(existingUser.Id, request.Fingerprint);
+        var rToken = tokenService.GenerateRefreshToken(
+            existingUser.Id, 
+            request.Fingerprint);
         
-        existingUser.RefreshTokens.Add(token);
+        var aToken = tokenService.GenerateAccessToken(
+            existingUser.Id, 
+            existingUser.Email, 
+            existingUser.Role.ToString());
+        
+        existingUser.RefreshTokens.Add(rToken);
         await dbContext.SaveChangesAsync(cnt);
         
-        return Result<string>.Success(token);
+        return Result<(string,string)>.Success((rToken,aToken));
     }
 }
